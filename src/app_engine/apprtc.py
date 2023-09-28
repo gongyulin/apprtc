@@ -149,8 +149,8 @@ def get_wss_parameters(request):
     wss_url = 'ws://' + wss_host_port_pair + '/ws'
     wss_post_url = 'http://' + wss_host_port_pair
   else:
-    wss_url = 'wss://' + wss_host_port_pair + '/ws'
-    wss_post_url = 'https://' + wss_host_port_pair
+    wss_url = 'ws://' + wss_host_port_pair + '/ws'
+    wss_post_url = 'http://' + wss_host_port_pair
   return (wss_url, wss_post_url)
 
 def get_version_info():
@@ -427,7 +427,7 @@ def remove_client_from_room(host, room_id, client_id):
     room.remove_client(client_id)
     if room.has_client(constants.LOOPBACK_CLIENT_ID):
       room.remove_client(constants.LOOPBACK_CLIENT_ID)
-    if room.get_occupancy() > 0:
+    if room.get_occupancy() > 2:
       room.get_other_client(client_id).set_initiator(True)
     else:
       room = None

@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const maxRoomCapacity = 2
+const maxRoomCapacity = 10
 
 type room struct {
 	parent *roomTable
@@ -109,6 +109,8 @@ func (rm *room) remove(clientID string) {
 		resp, err := http.Post(rm.roomSrvUrl+"/bye/"+rm.id+"/"+clientID, "text", nil)
 		if err != nil {
 			log.Printf("Failed to post BYE to room server %s: %v", rm.roomSrvUrl, err)
+		} else {
+			log.Printf("Success to post BYE to room server %s: %v", rm.roomSrvUrl, err)
 		}
 		if resp != nil && resp.Body != nil {
 			resp.Body.Close()
