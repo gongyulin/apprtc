@@ -149,8 +149,8 @@ def get_wss_parameters(request):
     wss_url = 'ws://' + wss_host_port_pair + '/ws'
     wss_post_url = 'http://' + wss_host_port_pair
   else:
-    wss_url = 'wss://' + wss_host_port_pair + '/ws'
-    wss_post_url = 'https://' + wss_host_port_pair
+    wss_url = 'ws://' + wss_host_port_pair + '/ws'
+    wss_post_url = 'http://' + wss_host_port_pair
   return (wss_url, wss_post_url)
 
 def get_version_info():
@@ -375,7 +375,7 @@ def add_client_to_room(request, room_id, client_id, is_loopback):
       room = memcache_client.gets(key)
 
     occupancy = room.get_occupancy()
-    if occupancy >= 2:
+    if occupancy >= 10:
       error = constants.RESPONSE_ROOM_FULL
       break
     if room.has_client(client_id):
@@ -398,7 +398,7 @@ def add_client_to_room(request, room_id, client_id, is_loopback):
       logging.info('Added client %s in room %s, retries = %d' \
           %(client_id, room_id, retries))
 
-      if room.get_occupancy() == 2:
+      if room.get_occupancy() == 10:
         analytics.report_event(analytics.EventType.ROOM_SIZE_2,
                                room_id,
                                host=request.host)
@@ -571,7 +571,7 @@ class RoomPage(webapp2.RequestHandler):
         get_memcache_key_for_room(maybe_use_https_host_url(self.request), room_id))
     if room is not None:
       logging.info('Room ' + room_id + ' has state ' + str(room))
-      if room.get_occupancy() >= 2:
+      if room.get_occupancy() >= 10:
         logging.info('Room ' + room_id + ' is full')
         self.write_response('full_template.html')
         return
