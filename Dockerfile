@@ -4,7 +4,7 @@ FROM golang:1.17.5-alpine3.15
 
 # Install and download deps.
 RUN apk add --no-cache git curl python2 build-base openssl-dev openssl 
-RUN git clone https://github.com/webrtc/apprtc.git
+RUN git clone -b stun https://github.com/gongyulin/apprtc.git
 
 # AppRTC GAE setup
 
@@ -21,7 +21,7 @@ RUN python apprtc/build/build_app_engine_package.py apprtc/src/ apprtc/out/ \
 
 # Wrap AppRTC GAE app in a bash script due to needing to run two apps within one container.
 RUN echo -e "#!/bin/sh\n" > /go/start.sh \
-    && echo -e "`pwd`/google-cloud-sdk/bin/dev_appserver.py --host 0.0.0.0 `pwd`/apprtc/out/app.yaml &\n" >> /go/start.sh
+    && echo -e "`pwd`/google-cloud-sdk/bin/dev_appserver.py --host 0.0.0.0 --enable_host_checking=false `pwd`/apprtc/out/app.yaml &\n" >> /go/start.sh
 
 # Collider setup
 # Go environment setup.
@@ -31,12 +31,15 @@ RUN export GOPATH=$HOME/goWorkspace/ \
 RUN ln -s `pwd`/apprtc/src/collider/collidermain $GOPATH/src \
     && ln -s `pwd`/apprtc/src/collider/collidertest $GOPATH/src \
     && ln -s `pwd`/apprtc/src/collider/collider $GOPATH/src \
+    && mkdir -p $GOPATH/src/golang.org/x \
+    && cd $GOPATH/src/golang.org/x \
+    && git clone https://github.com/golang/net.git \
     && cd $GOPATH/src \
     && go get collidermain \
     && go install collidermain
 
 # Add Collider executable to the start.sh bash script.
-RUN echo -e "$GOPATH/bin/collidermain -port=8089 -tls=true -room-server=http://localhost &\n" >> /go/start.sh
+RUN echo -e "$GOPATH/bin/collidermain -port=8089 -tls=false -room-server=http://localhost:8080 &\n" >> /go/start.sh
 
 ENV STUNNEL_VERSION 5.60
 
