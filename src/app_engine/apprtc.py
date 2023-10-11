@@ -375,7 +375,7 @@ def add_client_to_room(request, room_id, client_id, is_loopback):
       room = memcache_client.gets(key)
 
     occupancy = room.get_occupancy()
-    if occupancy >= 2:
+    if occupancy >= 10:
       error = constants.RESPONSE_ROOM_FULL
       break
     if room.has_client(client_id):
@@ -398,7 +398,7 @@ def add_client_to_room(request, room_id, client_id, is_loopback):
       logging.info('Added client %s in room %s, retries = %d' \
           %(client_id, room_id, retries))
 
-      if room.get_occupancy() == 2:
+      if room.get_occupancy() == 10:
         analytics.report_event(analytics.EventType.ROOM_SIZE_2,
                                room_id,
                                host=request.host)
@@ -427,7 +427,7 @@ def remove_client_from_room(host, room_id, client_id):
     room.remove_client(client_id)
     if room.has_client(constants.LOOPBACK_CLIENT_ID):
       room.remove_client(constants.LOOPBACK_CLIENT_ID)
-    if room.get_occupancy() > 2:
+    if room.get_occupancy() > 10:
       room.get_other_client(client_id).set_initiator(True)
     else:
       room = None
@@ -457,7 +457,7 @@ def save_message_from_client(host, room_id, client_id, message):
     if not room.has_client(client_id):
       logging.warning('Unknown client: ' + client_id)
       return {'error': constants.RESPONSE_UNKNOWN_CLIENT, 'saved': False}
-    if room.get_occupancy() > 1:
+    if room.get_occupancy() > 10:
       return {'error': None, 'saved': False}
 
     client = room.get_client(client_id)
@@ -571,7 +571,7 @@ class RoomPage(webapp2.RequestHandler):
         get_memcache_key_for_room(maybe_use_https_host_url(self.request), room_id))
     if room is not None:
       logging.info('Room ' + room_id + ' has state ' + str(room))
-      if room.get_occupancy() >= 2:
+      if room.get_occupancy() >= 10:
         logging.info('Room ' + room_id + ' is full')
         self.write_response('full_template.html')
         return
